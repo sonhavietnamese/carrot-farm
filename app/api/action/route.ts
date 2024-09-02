@@ -1,4 +1,5 @@
 import { BASE_URL, connection, CRT_TOKEN_ADDRESS, PACK_PRICES, USDC_TOKEN_ADDRESS } from '@/constants'
+import { blinksights } from '@/services/blinksight'
 import { ActionGetResponse, ACTIONS_CORS_HEADERS, createPostResponse, MEMO_PROGRAM_ID } from '@solana/actions'
 import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token'
 import { ComputeBudgetProgram, PublicKey, Transaction, TransactionInstruction, VersionedTransaction } from '@solana/web3.js'
@@ -19,7 +20,7 @@ function trimAddress(address: string): string {
 }
 
 export async function GET(req: Request) {
-  const response: ActionGetResponse = {
+  const response: ActionGetResponse = await blinksights.createActionGetResponseV1(req.url, {
     type: 'action',
     icon: `${BASE_URL}/thumbnail.png`,
     title: 'Carrot Happy Farm 🥕',
@@ -37,7 +38,7 @@ export async function GET(req: Request) {
         },
       ],
     },
-  }
+  })
 
   return Response.json(response, {
     headers: ACTIONS_CORS_HEADERS,
@@ -223,6 +224,10 @@ const createBlankTransaction = async (sender: PublicKey) => {
 }
 
 const getFarmImage = (balance: number): string => {
+  if (balance === 0) {
+    return `${BASE_URL}/farm/0.png`
+  }
+
   if (balance < 30) {
     return `${BASE_URL}/farm/30.png`
   }
